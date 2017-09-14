@@ -10,6 +10,8 @@ var dummyStreamer = {
   packetContent: new Uint8Array([1,2,3,4]), // four byte array
 
   start: function(){
+
+    console.log(`packets starting`);
     if(this.stream == null) {
       this.stream = new Readable();
       this.stream._read = function noop() {}; // redundant? see update below
@@ -44,7 +46,8 @@ var dummyStreamer = {
     return this.stream;
   },
   end: function(){
-    clearInterval(this.intervalInst);
+    clearTimeout(this.intervalInst.id);
+    console.log(`packets stopping`);
   },
   isPaused: function() {
     return this.paused;
@@ -53,7 +56,7 @@ var dummyStreamer = {
     //this.stream.destroy();
     this.stream = null;
   },
-  customSetInterval:function (func, time){
+  customSetInterval: function (func, time){
     var lastTime = Date.now(),
         lastDelay = time,
         outp = {};

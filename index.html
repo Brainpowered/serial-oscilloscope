@@ -48,25 +48,26 @@
       }
 
       function createSocket(){
+
         socket = new WebSocket('ws://localhost:8080');
         socket.binaryType = 'arraybuffer'; // ensures data is received in correct format
         socket.onopen = function(event) {
-
           customSetInterval(showRate, measureInterval);
-          
-          socket.onmessage = function(event) {
-            //console.log('Client received a message',event);
-            //blobData = event.data;
-            var tempArray = new Uint8Array(event.data);
-            content.innerHTML += `Packet ${++packetCount}: ${tempArray[0]} ${tempArray[1]} ${tempArray[2]} ${tempArray[3]}<br/>`;
-            accumulator++;
-          };
-
-          socket.onclose = function(event) {
-            console.log('Client notified socket has closed',event);
-          };
         }
+
+        socket.onmessage = function(event) {
+          //console.log('Client received a message',event);
+          //blobData = event.data;
+          var tempArray = new Uint8Array(event.data);
+          //content.innerHTML += `Packet ${++packetCount}: ${tempArray[0]} ${tempArray[1]} ${tempArray[2]} ${tempArray[3]}<br/>`;
+          accumulator++;
+        };
+
+        socket.onclose = function(event) {
+          console.log('Client notified socket has closed',event);
+        };
       }
+
       function sendMessage(msg){
         socket.send(msg);
       }
@@ -81,7 +82,7 @@
         socket.send('pause');
       }
       function setRate(rate) {
-        socket.send('set-rate '+rate);
+        socket.send(`rate-${rate}`);
       }
 
     // note: likely this will end up as badly managed (unsequenced with erratic timing) chunking...

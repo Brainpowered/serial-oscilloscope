@@ -25,18 +25,18 @@ server.on("error", function(error) {
 server.on("connection", function(conn) {
   console.log("New connection");
   conn.on("text", function (str) {
-    switch(str){
+    var strArr = str.split('-');
+    var command = strArr[0];
+    switch(command){
       case 'pause':
         if(!readableStream.isPaused())
           readableStream.pause();
         else
           readableStream.resume();
         break;
-      case 'set-rate 100':
-        readableStream.setRate(100);
-        break;
-      case 'set-rate 1':
-        readableStream.setRate(1);
+      case 'rate':
+        var rate = strArr[1].replace('-', '');
+        readableStream.setRate(parseInt(rate));
         break;
       default:
         console.log(`received: ${str}`);
@@ -65,12 +65,12 @@ server.on("connection", function(conn) {
     **/
   readableStream.start();
   readableStream.getStream().on('data', function(chunk) {
-      console.log(`connection readystate ${conn.readyState}`);
+      //console.log(`connection readystate ${conn.readyState}`);
       if(conn.readyState == 3) {
         readableStream.endStreamer();
         return;
       }
-      console.log(`writing ${chunk.length}bytes of data`);
+      //console.log(`writing ${chunk.length}bytes of data`);
       //data += chunk;
       conn.sendBinary(chunk);
       bytesWritten += chunk.length;
