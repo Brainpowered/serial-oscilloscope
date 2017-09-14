@@ -1,0 +1,26 @@
+{
+  "name": "app1",
+  "version": "1.0.0",
+  "description": "Oscilloscope Front-End and server for serial data",
+  "main": "serial-test.js",
+  "dependencies": {
+    "express": "^4.15.2",
+    "nodejs-websocket": "^1.7.1",
+    "serialport": "^5.0.0",
+    "socket.io": "^2.0.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Brainpowered/serial-oscilloscope.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Brainpowered/serial-oscilloscope/issues"
+  },
+  "homepage": "https://github.com/Brainpowered/serial-oscilloscope#readme"
+}

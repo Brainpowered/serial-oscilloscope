@@ -1,3 +1,5 @@
+// send serial data via bluetooth once conection is established
+
 // var SerialPort = require('serialport');
 // var port = new SerialPort('/dev/tty-usbserial1', {
 //   baudRate: 57600

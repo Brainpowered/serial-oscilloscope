@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{{title}}}</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css" media="all">
+    <!-- <script src="/static/scripts.js"> -->
+    <!-- <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script> -->
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+
+    /**
+
+      if we want to display at 30fps
+
+      and we get 30 samples per second
+
+      we would have one point per frame (this point will be extrapolated across the screen)
+
+
+      --
+      if we get 300 samples per second, we could show ten samples across the screen at a time, we have to assume that they are equal length
+      the reception of samples will not be exactly 300sps and the client side every second, so we need to implement a buffering system (FIFO)
+        - look into adaptive buffer adjustments to balance between jitter correction and response times (balanced)
+        - fixed mode: always fills a buffer (preset size) first before displaying - good performance, and best visually
+        - no buffer: fastest response times - most jitter
+
+      based on the number of samples we receive per second (timebase) we can calculate size (span) and position of points
+      eg: a timebase of 5ms requires that at least 20 samples need to be sent per second a reccomended number would be based on the resolution of the viewport.
+        if we would like 100px across viewport to be filled with maximum resolution of points, we would need to multiply that Minimum of 20 * 100 = 2000 sps
+
+
+    **/
+    // // Create a socket instance
+    // built-in socket api
+    var socket = null;
+    var packetCount = 0;
+    //var blobData = null;
+    var content = null;
+    var rateDisplay = null;
+
+      $(function () {
+        content = document.getElementById('content');
+        rateDisplay = document.getElementById('rate');
+      });
+
+      function convertBlobDataToArray(data){
+        return new Uint8Array(data);
+      }
+
+      function createSocket(){
+        socket = new WebSocket('ws://localhost:8080');
+        socket.binaryType = 'arraybuffer'; // ensures data is received in correct format
+        socket.onopen = function(event) {
+
+          customSetInterval(showRate, measureInterval);
+          
+          socket.onmessage = function(event) {
+            //console.log('Client received a message',event);
+            //blobData = event.data;
+            var tempArray = new Uint8Array(event.data);
+            content.innerHTML += `Packet ${++packetCount}: ${tempArray[0]} ${tempArray[1]} ${tempArray[2]} ${tempArray[3]}<br/>`;
+            accumulator++;
+          };
+
+          socket.onclose = function(event) {
+            console.log('Client notified socket has closed',event);
+          };
+        }
+      }
+      function sendMessage(msg){
+        socket.send(msg);
+      }
+      // Sends a message to the server via sockets
+      function sendMessageToServer(message) {
+        socket.send(message);
+      }
+      function closeSocket() {
+        socket.close();
+      }
+      function togglePause() {
+        socket.send('pause');
+      }
+      function setRate(rate) {
+        socket.send('set-rate '+rate);
+      }
+
+    // note: likely this will end up as badly managed (unsequenced with erratic timing) chunking...
+    // will need to implement better webworker stuff
+    // so am now looking at https://github.com/audiojs/web-audio-stream
+    // alternatively https://github.com/audiojs/web-audio-stream
+
+        var measureInterval = 1000;
+        var accumulator = 0;
+        // var rateInterval = setInterval(function(){
+        //   rateDisplay.innerHTML = `${accumulator} packets/second`;
+        //   accumulator = 0;
+        // }, rateInterval);
+
+        function showRate(){
+          rateDisplay.innerHTML = `${accumulator} packets/second`;
+          accumulator = 0;
+        }
+
+        function customSetInterval(func, time){
+          var lastTime = Date.now(),
+              lastDelay = time,
+              outp = {};
+
+          function tick(){
+              func();
+
+              var now = Date.now(),
+                  dTime = now - lastTime;
+
+              lastTime = now;
+              lastDelay = time + lastDelay - dTime;
+              outp.id = setTimeout(tick, lastDelay);
+          }
+          outp.id = setTimeout(tick, time);
+
+          return outp;
+      }
+
+      function cleaLog(){
+        content.innerHTML = "";
+      }
+
+    </script>
+  </head>
+  <body>
+    <div id="nav">
+      <button onclick="closeSocket()" >close</button>
+      <button onclick="togglePause()" >Toggle Pause</button>
+      <button onclick="createSocket()" >connect</button>
+      <button onclick="sendMessage('test')" >send text message</button>
+      <button onclick="setRate(100)" >Set Rate 100</button>
+      <button onclick="setRate(1)" >Set Rate 1</button>
+      <button onclick="clearLog()" >Clear Log</button>
+    </div>
+    <div id="rate">rate here</div>
+    <div id="content"></div>
+
+  </body>
+</html>
